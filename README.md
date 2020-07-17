@@ -44,7 +44,7 @@ FRONTEND_URL=http://localhost:13577 \
   npm run start
 ```
 
-The app should then be available at http://localhost:16577.
+The app should then be available at http://localhost:13577.
 
 ### Debugging
 
