@@ -2,23 +2,23 @@ import {expose} from '@layr/component';
 import {attribute, finder} from '@layr/storable';
 import {role} from '@layr/with-roles';
 
-export const WithAuthor = (Base) =>
+export const WithAuthor = (Base) => {
   class WithAuthor extends Base {
-    @expose({get: true}) @attribute('User') author = this.constructor.Session.user;
+    @expose({get: true, set: 'author'}) @attribute('User') author;
 
     @expose({get: 'user'})
     @finder(async function () {
-      const {user} = this.constructor.Session;
+      const user = await this.constructor.User.getAuthenticatedUser();
 
       await user.load({followedUsers: {}});
 
       return {author: {$in: user.followedUsers}};
     })
     @attribute('boolean?')
-    authorIsFollowedBySessionUser;
+    authorIsFollowedByAuthenticatedUser;
 
     @role('author') async authorRoleResolver() {
-      if (this.resolveRole('guest')) {
+      if (await this.resolveRole('guest')) {
         return undefined;
       }
 
@@ -28,6 +28,11 @@ export const WithAuthor = (Base) =>
 
       await this.getGhost().load({author: {}});
 
-      return this.getGhost().author === this.constructor.Session.user.getGhost();
+      return (
+        this.getGhost().author === (await this.constructor.User.getAuthenticatedUser()).getGhost()
+      );
     }
-  };
+  }
+
+  return WithAuthor;
+};

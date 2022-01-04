@@ -1,24 +1,24 @@
 ## Comparison of some RealWorld example apps in terms of the amount of code
 
 > LOC represents the number of line of code excluding comments and test suites.  
-> Count done on November 19th, 2020 using [Tokei](https://github.com/XAMPPRocky/tokei).
+> Count done on June 24th, 2021 using [Tokei](https://github.com/XAMPPRocky/tokei).
 
 ### Frontends
 
-| Project                                                                         | LOC  |
-| ------------------------------------------------------------------------------- | :--: |
-| [layr](https://github.com/layrjs/react-layr-realworld-example-app)              | 1436 |
-| [react-mobx](https://github.com/gothinkster/react-mobx-realworld-example-app)   | 1932 |
-| [react-redux](https://github.com/gothinkster/react-redux-realworld-example-app) | 2065 |
-| [angular](https://github.com/gothinkster/angular-realworld-example-app)         | 2102 |
-| [vue](https://github.com/gothinkster/vue-realworld-example-app)                 | 2104 |
+| Project                                                                           | LOC  |
+| --------------------------------------------------------------------------------- | :--: |
+| [Layr + React](https://github.com/layrjs/react-layr-realworld-example-app)        | 1190 |
+| [React + Redux](https://github.com/khaledosman/react-redux-realworld-example-app) | 2045 |
+| [Angular](https://github.com/khaledosman/angular-realworld-example-app)           | 2164 |
+| [Vue.js + Vite](https://github.com/mutoe/vue3-realworld-example-app)              | 2409 |
+| [Next.js + SWR](https://github.com/gothinkster/react-mobx-realworld-example-app)  | 2928 |
 
 ### Backends
 
-| Project                                                                           | LOC  |
-| --------------------------------------------------------------------------------- | :--: |
-| [layr](https://github.com/layrjs/react-layr-realworld-example-app)                | 405  |
-| [node-express](https://github.com/gothinkster/node-express-realworld-example-app) | 596  |
-| [nestjs-typeorm](https://github.com/lujakob/nestjs-realworld-example-app)         | 964  |
-| [koa-knex](https://github.com/gothinkster/koa-knex-realworld-example)             | 1535 |
-| [hapijs](https://github.com/gothinkster/hapijs-realworld-example-app)             | 1872 |
+| Project                                                                              | LOC  |
+| ------------------------------------------------------------------------------------ | :--: |
+| [Layr](https://github.com/layrjs/react-layr-realworld-example-app)                   | 366  |
+| [Express + Sequelize](https://github.com/Varun-Hegde/Conduit_NodeJS)                 | 905  |
+| [NestJS + Mongoose + GraphQL](https://github.com/ramzitannous/medium-graphql-nestjs) | 1379 |
+| [Koa + Knex.js](https://github.com/gothinkster/koa-knex-realworld-example)           | 1535 |
+| [Hapi + Mongoose](https://github.com/gothinkster/hapijs-realworld-example-app)       | 1872 |

@@ -1,171 +1,183 @@
 import {consume} from '@layr/component';
+import {attribute} from '@layr/storable';
 import React, {useMemo} from 'react';
-import {Routable, route} from '@layr/routable';
-import {view, useAsyncCallback} from '@layr/react-integration';
-
-import {Entity} from './entity';
+import {Routable} from '@layr/routable';
+import {page, view, useData, useAction} from '@layr/react-integration';
+import classNames from 'classnames';
 
 const PROFILE_IMAGE_PLACEHOLDER = '//static.productionready.io/images/smiley-cyrus.jpg';
 
-export const User = (Base) =>
-  class User extends Routable(Entity(Base)) {
-    @consume() static Session;
-    @consume() static Home;
-    @consume() static ArticleList;
+export const extendUser = (Base) => {
+  class User extends Routable(Base) {
+    @consume() static Application;
+    @consume() static Article;
 
-    get mentionName() {
-      return this.constructor.usernameToMentionName(this.username);
+    @attribute('string?', {
+      getter() {
+        return window.localStorage.getItem('token') || undefined;
+      },
+      setter(token) {
+        if (token !== undefined) {
+          window.localStorage.setItem('token', token);
+        } else {
+          window.localStorage.removeItem('token');
+        }
+      }
+    })
+    static token;
+
+    static async initializer() {
+      this.authenticatedUser = await this.getAuthenticatedUser({
+        email: true,
+        username: true,
+        bio: true,
+        imageURL: true
+      });
     }
 
-    static usernameToMentionName(username) {
-      return '@' + username;
-    }
+    static ensureGuest(content) {
+      const {Application} = this;
 
-    static mentionNameToUsername(mentionName) {
-      return mentionName.slice(1);
-    }
-
-    @route('/:mentionName(@[a-zA-Z0-9]+)') static Main({mentionName}) {
-      this.Articles.redirect({mentionName});
-    }
-
-    @route('/:mentionName(@[a-zA-Z0-9]+)/articles') static Articles({mentionName}) {
-      return this.Content({mentionName});
-    }
-
-    @route('/:mentionName(@[a-zA-Z0-9]+)/favorites') static Favorites({mentionName}) {
-      return this.Content({mentionName});
-    }
-
-    static Content({mentionName}) {
-      const username = this.mentionNameToUsername(mentionName);
-
-      return (
-        <this.Loader
-          query={{username}}
-          attributes={{username: true, bio: true, imageURL: true, isFollowedBySessionUser: true}}
-        >
-          {(user) => <user.Content />}
-        </this.Loader>
-      );
-    }
-
-    @view() Content() {
-      const {ArticleList} = this.constructor;
-
-      const isFavoritesRoute = this.constructor.Favorites.isActive(this);
-
-      const articleQuery = useMemo(
-        () => (isFavoritesRoute ? {isFavoritedBy: this} : {author: this}),
-        [isFavoritesRoute]
-      );
-
-      return (
-        <div className="profile-page">
-          <div className="user-info">
-            <div className="container">
-              <div className="row">
-                <div className="col-xs-12 col-md-10 offset-md-1">
-                  <this.ProfileImage className="user-img" />
-                  <h4>{this.username}</h4>
-                  <p>{this.bio}</p>
-                  <this.Actions />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="container">
-            <div className="row">
-              <div className="col-xs-12 col-md-10 offset-md-1">
-                <this.Tabs />
-                <ArticleList.Main query={articleQuery} />
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    @view() Actions() {
-      const {Session} = this.constructor;
-
-      if (!Session.user) {
+      if (this.authenticatedUser !== undefined) {
+        Application.HomePage.redirect();
         return null;
       }
 
-      if (this === Session.user) {
+      return content();
+    }
+
+    static ensureAuthenticatedUser(content) {
+      const {Application} = this;
+
+      if (this.authenticatedUser === undefined) {
+        Application.HomePage.redirect();
+        return null;
+      }
+
+      return content(this.authenticatedUser);
+    }
+
+    @page('[/]@:username', {params: {articles: 'string?', page: 'number?'}}) ItemPage({
+      articles = 'authored',
+      page = 1
+    }) {
+      const {Article} = this.constructor;
+
+      return useData(
+        async () => {
+          await this.load({
+            username: true,
+            bio: true,
+            imageURL: true,
+            isFollowedByAuthenticatedUser: true
+          });
+        },
+
+        () => {
+          const query = articles === 'authored' ? {author: this} : {isFavoritedBy: this};
+
+          return (
+            <div className="profile-page">
+              <div className="user-info">
+                <div className="container">
+                  <div className="row">
+                    <div className="col-xs-12 col-md-10 offset-md-1">
+                      <this.ProfileImageView className="user-img" />
+                      <h4>{this.username}</h4>
+                      <p>{this.bio}</p>
+                      <this.ActionsView />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="container">
+                <div className="row">
+                  <div className="col-xs-12 col-md-10 offset-md-1">
+                    <this.TabsView articles={articles} />
+                    <Article.ListView
+                      query={query}
+                      currentPage={page}
+                      onPageChange={(page) => {
+                        this.ItemPage.navigate({articles, page});
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+      );
+    }
+
+    @view() ActionsView() {
+      if (!this.constructor.authenticatedUser) {
+        return null;
+      }
+
+      if (this === this.constructor.authenticatedUser) {
         return (
-          <this.constructor.Settings.Link className="btn btn-sm btn-outline-secondary action-btn">
-            <i className="ion-gear-a" /> Edit profile settings
-          </this.constructor.Settings.Link>
+          <this.constructor.SettingsPage.Link className="btn btn-sm btn-outline-secondary action-btn">
+            <i className="ion-gear-a" /> Edit profile settingsPage
+          </this.constructor.SettingsPage.Link>
         );
       }
 
       const FollowButton = () => {
-        const [handleFollow, isHandlingFollow] = useAsyncCallback(async () => {
-          await Session.user.follow(this);
-        }, []);
+        const follow = useAction(async () => {
+          await this.constructor.authenticatedUser.follow(this);
+        });
 
         return (
-          <button
-            className="btn btn-sm action-btn btn-outline-secondary"
-            onClick={handleFollow}
-            disabled={isHandlingFollow}
-          >
+          <button className="btn btn-sm action-btn btn-outline-secondary" onClick={follow}>
             <i className="ion-plus-round" /> Follow {this.username}
           </button>
         );
       };
 
       const UnfollowButton = () => {
-        const [handleUnfollow, isHandlingUnfollow] = useAsyncCallback(async () => {
-          await Session.user.unfollow(this);
-        }, []);
+        const unfollow = useAction(async () => {
+          await this.constructor.authenticatedUser.unfollow(this);
+        });
 
         return (
-          <button
-            className="btn btn-sm action-btn btn-secondary"
-            onClick={handleUnfollow}
-            disabled={isHandlingUnfollow}
-          >
+          <button className="btn btn-sm action-btn btn-secondary" onClick={unfollow}>
             <i className="ion-plus-round" /> Unfollow {this.username}
           </button>
         );
       };
 
-      return this.isFollowedBySessionUser ? <UnfollowButton /> : <FollowButton />;
+      return this.isFollowedByAuthenticatedUser ? <UnfollowButton /> : <FollowButton />;
     }
 
-    @view() Tabs() {
+    @view() TabsView({articles}) {
       return (
         <div className="articles-toggle">
           <ul className="nav nav-pills outline-active">
             <li className="nav-item">
-              <this.constructor.Articles.Link
-                params={this}
-                className="nav-link"
-                activeClassName="active"
+              <this.ItemPage.Link
+                params={{articles: 'authored'}}
+                className={classNames('nav-link', {active: articles === 'authored'})}
               >
                 My articles
-              </this.constructor.Articles.Link>
+              </this.ItemPage.Link>
             </li>
 
             <li className="nav-item">
-              <this.constructor.Favorites.Link
-                params={this}
-                className="nav-link"
-                activeClassName="active"
+              <this.ItemPage.Link
+                params={{articles: 'favorited'}}
+                className={classNames('nav-link', {active: articles === 'favorited'})}
               >
                 Favorited articles
-              </this.constructor.Favorites.Link>
+              </this.ItemPage.Link>
             </li>
           </ul>
         </div>
       );
     }
 
-    @view() ProfileImage({className = 'user-pic'}) {
+    @view() ProfileImageView({className = 'user-pic'}) {
       return (
         <img
           src={this.imageURL || PROFILE_IMAGE_PLACEHOLDER}
@@ -175,26 +187,21 @@ export const User = (Base) =>
       );
     }
 
-    @route('/register') @view() static SignUp() {
-      const {Session, Home} = this;
+    @page('[/]sign-up') static SignUpPage() {
+      return this.ensureGuest(() => {
+        const user = useMemo(() => new (this.fork())(), []);
 
-      if (Session.user) {
-        Home.Main.redirect();
-        return null;
-      }
-
-      const user = new (this.fork())();
-
-      return <user.SignUp />;
+        return <user.SignUpView />;
+      });
     }
 
-    @view() SignUp() {
-      const {Home, Common} = this.constructor;
+    @view() SignUpView() {
+      const {Application} = this.constructor;
 
-      const [handleSignUp, isSigningUp, signingUpError] = useAsyncCallback(async () => {
+      const signUp = useAction(async () => {
         await this.signUp();
-        Home.Main.reload();
-      }, []);
+        Application.HomePage.reload();
+      });
 
       return (
         <div className="auth-page">
@@ -204,15 +211,15 @@ export const User = (Base) =>
                 <h1 className="text-xs-center">Sign Up</h1>
 
                 <p className="text-xs-center">
-                  <this.constructor.SignIn.Link>Have an account?</this.constructor.SignIn.Link>
+                  <this.constructor.SignInPage.Link>
+                    Have an account?
+                  </this.constructor.SignInPage.Link>
                 </p>
-
-                {signingUpError && <Common.ErrorMessage error={signingUpError} />}
 
                 <form
                   onSubmit={(event) => {
                     event.preventDefault();
-                    handleSignUp();
+                    signUp();
                   }}
                 >
                   <fieldset>
@@ -261,11 +268,7 @@ export const User = (Base) =>
                       />
                     </fieldset>
 
-                    <button
-                      className="btn btn-lg btn-primary pull-xs-right"
-                      type="submit"
-                      disabled={isSigningUp}
-                    >
+                    <button className="btn btn-lg btn-primary pull-xs-right" type="submit">
                       Sign up
                     </button>
                   </fieldset>
@@ -277,26 +280,21 @@ export const User = (Base) =>
       );
     }
 
-    @route('/login') @view() static SignIn() {
-      const {Session, Home} = this;
+    @page('[/]sign-in') static SignInPage() {
+      return this.ensureGuest(() => {
+        const user = useMemo(() => new (this.fork())(), []);
 
-      if (Session.user) {
-        Home.Main.redirect();
-        return null;
-      }
-
-      const user = new (this.fork())();
-
-      return <user.SignIn />;
+        return <user.SignInView />;
+      });
     }
 
-    @view() SignIn() {
-      const {Home, Common} = this.constructor;
+    @view() SignInView() {
+      const {Application} = this.constructor;
 
-      const [handleSignIn, isSigningIn, signingInError] = useAsyncCallback(async () => {
+      const signIn = useAction(async () => {
         await this.signIn();
-        Home.Main.reload();
-      }, []);
+        Application.HomePage.reload();
+      });
 
       return (
         <div className="auth-page">
@@ -306,15 +304,15 @@ export const User = (Base) =>
                 <h1 className="text-xs-center">Sign In</h1>
 
                 <p className="text-xs-center">
-                  <this.constructor.SignUp.Link>Need an account?</this.constructor.SignUp.Link>
+                  <this.constructor.SignUpPage.Link>
+                    Need an account?
+                  </this.constructor.SignUpPage.Link>
                 </p>
-
-                {signingInError && <Common.ErrorMessage error={signingInError} />}
 
                 <form
                   onSubmit={(event) => {
                     event.preventDefault();
-                    handleSignIn();
+                    signIn();
                   }}
                 >
                   <fieldset>
@@ -344,11 +342,7 @@ export const User = (Base) =>
                       />
                     </fieldset>
 
-                    <button
-                      className="btn btn-lg btn-primary pull-xs-right"
-                      type="submit"
-                      disabled={isSigningIn}
-                    >
+                    <button className="btn btn-lg btn-primary pull-xs-right" type="submit">
                       Sign in
                     </button>
                   </fieldset>
@@ -360,33 +354,28 @@ export const User = (Base) =>
       );
     }
 
-    signOut() {
-      const {Session, Home} = this.constructor;
+    static signOut() {
+      const {Application} = this;
 
-      Session.token = undefined;
-      Home.Main.reload();
+      this.token = undefined;
+      Application.HomePage.reload();
     }
 
-    @route('/settings') @view() static Settings() {
-      const {Session, Home} = this;
+    @page('[/]settings') static SettingsPage() {
+      const {Application} = this;
 
-      if (!Session.user) {
-        Home.Main.redirect();
+      if (!this.authenticatedUser) {
+        Application.HomePage.redirect();
         return null;
       }
 
-      return <Session.user.Settings />;
-    }
+      const fork = useMemo(() => this.authenticatedUser.fork(), []);
 
-    @view() Settings() {
-      const {Home, Common} = this.constructor;
-
-      const fork = useMemo(() => this.fork(), []);
-
-      const [handleUpdate, , updatingError] = useAsyncCallback(async () => {
+      const update = useAction(async () => {
         await fork.save();
-        this.merge(fork);
-        Home.Main.navigate();
+        fork.getAttribute('password').unsetValue();
+        this.authenticatedUser.merge(fork);
+        Application.HomePage.navigate();
       }, [fork]);
 
       return (
@@ -396,9 +385,7 @@ export const User = (Base) =>
               <div className="col-md-6 offset-md-3 col-xs-12">
                 <h1 className="text-xs-center">Your Settings</h1>
 
-                {updatingError && <Common.ErrorMessage error={updatingError} />}
-
-                <fork.SettingsForm onSubmit={handleUpdate} />
+                <fork.SettingsFormView onSubmit={update} />
 
                 <hr />
 
@@ -417,17 +404,15 @@ export const User = (Base) =>
       );
     }
 
-    @view() SettingsForm({onSubmit}) {
-      const [handleSubmit, isSubmitting] = useAsyncCallback(
-        async (event) => {
-          event.preventDefault();
-          await onSubmit();
-        },
-        [onSubmit]
-      );
-
+    @view() SettingsFormView({onSubmit}) {
       return (
-        <form onSubmit={handleSubmit} autoComplete="off">
+        <form
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit();
+          }}
+          autoComplete="off"
+        >
           <fieldset>
             <fieldset className="form-group">
               <input
@@ -496,23 +481,21 @@ export const User = (Base) =>
                   if (value) {
                     this.password = value;
                   } else {
-                    this.password = undefined;
-                    this.this.getAttribute('password').unset();
+                    this.getAttribute('password').unsetValue();
                   }
                 }}
                 autoComplete="new-password"
               />
             </fieldset>
 
-            <button
-              className="btn btn-lg btn-primary pull-xs-right"
-              type="submit"
-              disabled={isSubmitting}
-            >
+            <button className="btn btn-lg btn-primary pull-xs-right" type="submit">
               Update settings
             </button>
           </fieldset>
         </form>
       );
     }
-  };
+  }
+
+  return User;
+};

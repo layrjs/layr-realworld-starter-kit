@@ -1,36 +1,19 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import {ComponentHTTPClient} from '@layr/component-http-client';
+import {Storable} from '@layr/storable';
 
-import {getApplication} from './components/application';
+import {extendApplication} from './components/application';
 
-const backendURL = process.env.BACKEND_URL;
-
-if (!backendURL) {
-  throw new Error(`'BACKEND_URL' environment variable is missing`);
-}
-
-(async () => {
-  let content;
-
-  try {
-    const Application = await getApplication({
-      name: 'Conduit',
-      description: 'A place to share your knowledge.',
-      backendURL
-    });
-
-    if (process.env.NODE_ENV !== 'production') {
-      window.Application = Application; // For debugging
+export default async () => {
+  const client = new ComponentHTTPClient(process.env.BACKEND_URL, {
+    mixins: [Storable],
+    async retryFailedRequests() {
+      return confirm('Sorry, a network error occurred. Would you like to retry?');
     }
+  });
 
-    await Application.Session.loadUser();
+  const BackendApplication = await client.getComponent();
 
-    content = <Application.Main />;
-  } catch (err) {
-    console.error(err);
+  const Application = extendApplication(BackendApplication);
 
-    content = <pre>{err.stack}</pre>;
-  }
-
-  ReactDOM.render(content, document.getElementById('root'));
-})();
+  return Application;
+};

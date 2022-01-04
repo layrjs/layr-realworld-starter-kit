@@ -43,7 +43,7 @@ export class Article extends WithAuthor(Entity) {
   @index()
   @attribute('string[]', {
     validators: [rangeLength([0, 10])],
-    items: {validators: [rangeLength([1, 30]), match(/^[a-z0-9-]+$/)]}
+    items: {validators: [rangeLength([1, 20]), match(/^[a-z0-9-]+$/)]}
   })
   tags = [];
 
@@ -51,12 +51,12 @@ export class Article extends WithAuthor(Entity) {
 
   @expose({get: true})
   @loader(async function () {
-    const {user} = this.constructor.Session;
+    const user = await this.constructor.User.getAuthenticatedUser();
 
     return user && (await this.isFavoritedBy(user));
   })
   @attribute('boolean?')
-  isFavoritedBySessionUser;
+  isFavoritedByAuthenticatedUser;
 
   @finder(async function (user) {
     await user.load({favoritedArticles: {}});

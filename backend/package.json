@@ -4,32 +4,15 @@
   "private": true,
   "author": "Manuel Vila <hi@mvila.me>",
   "license": "MIT",
-  "scripts": {
-    "build": "rm -rf ./build && babel ./src --out-dir ./build",
-    "deploy": "npm run build && simple-deployment",
-    "migrate": "babel-node ./src/commands/migrate.js",
-    "start": "nodemon --watch ./src --exec babel-node ./src/http-server.js"
-  },
+  "main": "./src/index.js",
   "dependencies": {
-    "@layr/aws-integration": "^1.1.0",
-    "@layr/component": "^1.1.1",
-    "@layr/component-server": "^1.1.1",
-    "@layr/mongodb-store": "^1.1.16",
-    "@layr/storable": "^1.1.6",
-    "@layr/with-roles": "^1.0.16",
+    "@layr/component": "^2.0.23",
+    "@layr/mongodb-store": "^2.0.33",
+    "@layr/storable": "^2.0.36",
+    "@layr/utilities": "^1.0.2",
+    "@layr/with-roles": "^2.0.25",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^8.5.1",
-    "slugify": "^1.4.6"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.12.10",
-    "@babel/core": "^7.12.10",
-    "@babel/node": "^7.12.10",
-    "@babel/plugin-proposal-class-properties": "^7.10.4",
-    "@babel/plugin-proposal-decorators": "^7.12.12",
-    "@babel/preset-env": "^7.12.11",
-    "@layr/component-http-server": "^1.1.1",
-    "nodemon": "^2.0.4",
-    "simple-deployment": "^0.1.46"
+    "slugify": "^1.6.0"
   }
 }

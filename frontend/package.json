@@ -4,36 +4,18 @@
   "private": true,
   "author": "Manuel Vila <hi@mvila.me>",
   "license": "MIT",
-  "scripts": {
-    "build": "webpack --mode=production",
-    "deploy": "npm run build && simple-deployment",
-    "start": "webpack serve --mode=development"
-  },
+  "main": "./src/index.js",
   "dependencies": {
-    "@layr/component": "^1.1.1",
-    "@layr/component-http-client": "^1.1.0",
-    "@layr/react-integration": "^1.0.21",
-    "@layr/routable": "^1.0.20",
-    "@layr/storable": "^1.1.6",
-    "dompurify": "^2.2.6",
-    "marked": "^0.8.2",
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.12.10",
-    "@babel/plugin-proposal-class-properties": "^7.10.4",
-    "@babel/plugin-proposal-decorators": "^7.12.12",
-    "@babel/preset-env": "^7.12.11",
-    "@babel/preset-react": "^7.12.10",
-    "babel-loader": "^8.2.2",
-    "clean-webpack-plugin": "^3.0.0",
-    "html-loader": "^1.3.0",
-    "html-webpack-plugin": "^4.5.1",
-    "simple-deployment": "^0.1.46",
-    "terser-webpack-plugin": "^3.1.0",
-    "webpack": "^5.11.1",
-    "webpack-cli": "^4.3.1",
-    "webpack-dev-server": "^3.11.1"
+    "@layr/component": "^2.0.23",
+    "@layr/component-http-client": "^2.0.29",
+    "@layr/react-integration": "^2.0.89",
+    "@layr/routable": "^2.0.72",
+    "@layr/storable": "^2.0.36",
+    "@layr/utilities": "^1.0.2",
+    "classnames": "^2.3.1",
+    "dompurify": "^2.3.1",
+    "marked": "^2.1.3",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
   }
 }

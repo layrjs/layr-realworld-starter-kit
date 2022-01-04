@@ -1,16 +1,18 @@
 # ![RealWorld Example App](assets/logo.png)
 
-> ### React/Layr codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
+> ### Layr/React codebase containing real world examples (CRUD, auth, advanced patterns, etc) that adheres to the [RealWorld](https://github.com/gothinkster/realworld) spec and API.
 
 ### [Demo](https://react-layr-realworld-example-app.layrjs.com/)&nbsp;&nbsp;&nbsp;&nbsp;[RealWorld](https://github.com/gothinkster/realworld)
 
-This codebase was created to demonstrate a fully fledged fullstack application built with [React](https://reactjs.org/) and [Layr](https://layrjs.com/) including CRUD operations, authentication, routing, pagination, and more.
+This codebase was created to demonstrate a fully fledged fullstack application built with [Layr](https://layrjs.com/) and [React](https://reactjs.org/) including CRUD operations, authentication, routing, pagination, and more.
+
+> Note: This implementation uses Layr v2, which is published on npm but not yet documented
 
 ## How it works
 
 ### General architecture
 
-Both the frontend and the backend use Layr [Layr](https://layrjs.com/), so there is no web API in between. The frontend communicate directly with the backend.
+Thanks to the API-less approach of [Layr](https://layrjs.com/), the frontend communicates directly with the backend without the need to build an API layer.
 
 ### Hosting
 
@@ -18,68 +20,68 @@ Both the frontend and the backend use Layr [Layr](https://layrjs.com/), so there
 - The backend is exposed via a single function hosted in AWS Lambda.
 - The database is hosted in a MongoDB Atlas cluster (free tier).
 
-## Install
+## Prerequisites
 
-Install the npm dependencies with:
+- Make sure your have a [Node.js](https://nodejs.org/) (v14 or newer) installed.
+- Make sure you have [Boostr](https://boostr.dev/) installed as it is used to manage the development environment.
+
+## Installation
+
+Install all the npm dependencies with the following command:
 
 ```sh
-npm install
+boostr install
 ```
 
-## Develop
+## Development
 
-### Prerequisites
+### Configuration
 
-- Make sure you have [Docker](https://www.docker.com/) installed as it is used to execute the MongoDB development database.
 - Generate a JWT secret by running the following command in your terminal:
   - `openssl rand -hex 64`
-
-### Running the app in development mode
-
-Execute the following command:
-
-```sh
-FRONTEND_URL=http://localhost:13577 \
-  BACKEND_URL=http://localhost:13578 \
-  MONGODB_STORE_CONNECTION_STRING=mongodb://test:test@localhost:13579/test \
-  JWT_SECRET="********" \
-  npm run start
-```
-
-The app should then be available at http://localhost:13577.
+- In the `backend` directory, duplicate the `boostr.config.private-template.mjs` file, name it `boostr.config.private.mjs`, and modify it to set all the required private development environment variables.
 
 ### Migrating the database
 
-Navigate to the `./backend` directory and execute the following command:
+Migrate the database with the following command:
 
 ```sh
-FRONTEND_URL=http://localhost:13577 \
-  BACKEND_URL=http://localhost:13578 \
-  MONGODB_STORE_CONNECTION_STRING=mongodb://test:test@localhost:13579/test \
-  JWT_SECRET="********" \
-  npm run migrate
+boostr database migrate
 ```
 
-## Debug
+### Starting the development environment
 
-### Client
-
-Add the following entry in the local storage of your browser:
+Start the development environment with the following command:
 
 ```
-| Key   | Value     |
-| ----- | --------- |
-| debug | layr:* |
+boostr start
 ```
 
-### Server
+The website should be available at http://localhost:13577.
 
-Add the following environment variables when starting the app:
+## Production
+
+### Configuration
+
+- Generate a JWT secret by running the following command in your terminal:
+  - `openssl rand -hex 64`
+- In the `backend` directory, duplicate the `boostr.config.private-template.mjs` file, name it `boostr.config.private.mjs`, and modify it to set all the required private production environment variables.
+- In the `database` directory, duplicate the `boostr.config.private-template.mjs` file, name it `boostr.config.private.mjs`, and modify it to set the `stages.production.url` attribute to the URL of your production MongoDB database.
+
+### Migrating the database
+
+Migrate the database with the following command:
 
 ```sh
-DEBUG=layr:* DEBUG_DEPTH=10
+boostr database migrate --production
 ```
 
-## To do
+### Deployment
 
-- Implement a test suite
+Deploy the website to production with the following command:
+
+```
+boostr deploy --production
+```
+
+The website should be available at https://react-layr-realworld-example-app.layrjs.com.

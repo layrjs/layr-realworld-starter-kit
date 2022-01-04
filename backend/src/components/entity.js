@@ -3,7 +3,7 @@ import {Storable, primaryIdentifier, attribute, index} from '@layr/storable';
 import {WithRoles, role} from '@layr/with-roles';
 
 export class Entity extends WithRoles(Storable(Component)) {
-  @consume() static Session;
+  @consume() static User;
 
   @expose({get: true, set: true}) @primaryIdentifier() id;
 
@@ -11,12 +11,12 @@ export class Entity extends WithRoles(Storable(Component)) {
 
   @attribute('Date?') updatedAt;
 
-  @role('user') static userRoleResolver() {
-    return this.Session.user !== undefined;
+  @role('user') static async userRoleResolver() {
+    return (await this.User.getAuthenticatedUser()) !== undefined;
   }
 
-  @role('guest') static guestRoleResolver() {
-    return !this.resolveRole('user');
+  @role('guest') static async guestRoleResolver() {
+    return !(await this.resolveRole('user'));
   }
 
   async beforeSave() {
