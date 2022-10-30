@@ -119,7 +119,7 @@ export const extendUser = (Base) => {
       if (this === this.constructor.authenticatedUser) {
         return (
           <this.constructor.SettingsPage.Link className="btn btn-sm btn-outline-secondary action-btn">
-            <i className="ion-gear-a" /> Edit profile settingsPage
+            <i className="ion-gear-a" /> Edit profile settings
           </this.constructor.SettingsPage.Link>
         );
       }
