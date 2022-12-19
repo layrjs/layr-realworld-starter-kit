@@ -10,6 +10,8 @@ export default ({application, services}) => ({
     APPLICATION_DESCRIPTION: application.description
   },
 
+  rootComponent: './src/index.js',
+
   html: {
     language: 'en',
     head: {
