@@ -2,7 +2,7 @@ import {consume} from '@layr/component';
 import {Routable} from '@layr/routable';
 import React, {useState, useMemo, useCallback} from 'react';
 import {page, view, useData, useAction, useNavigator} from '@layr/react-integration';
-import marked from 'marked';
+import {marked} from 'marked';
 import DOMPurify from 'dompurify';
 
 const PAGE_SIZE = 10;
