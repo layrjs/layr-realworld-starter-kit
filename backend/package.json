@@ -11,7 +11,7 @@
     "@layr/utilities": "^1.0.2",
     "@layr/with-roles": "^2.0.25",
     "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "slugify": "^1.6.0"
   }
 }
