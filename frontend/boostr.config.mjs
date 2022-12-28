@@ -1,13 +1,11 @@
-export default ({application, services}) => ({
+export default ({services}) => ({
   type: 'web-frontend',
 
   dependsOn: 'backend',
 
   environment: {
     FRONTEND_URL: services.frontend.url,
-    BACKEND_URL: services.backend.url,
-    APPLICATION_NAME: application.name,
-    APPLICATION_DESCRIPTION: application.description
+    BACKEND_URL: services.backend.url
   },
 
   rootComponent: './src/index.js',
@@ -15,9 +13,9 @@ export default ({application, services}) => ({
   html: {
     language: 'en',
     head: {
-      title: application.name,
+      title: services.frontend.environment.APPLICATION_NAME,
       metas: [
-        {name: 'description', content: application.description},
+        {name: 'description', content: services.frontend.environment.APPLICATION_DESCRIPTION},
         {charset: 'utf-8'},
         {name: 'viewport', content: 'width=device-width, initial-scale=1'},
         {'http-equiv': 'x-ua-compatible', 'content': 'ie=edge'}
